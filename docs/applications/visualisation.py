@@ -96,7 +96,7 @@ def add_dislocation(view, system, name, color=[0, 1, 0], x_shift=0.0):
                         name)
     
 
-def show_dislocation(system, scale=0.5, diamond_structure=False, add_bonds=False,
+def show_dislocation(system, scale=0.5, CNA_color=True, diamond_structure=False, add_bonds=False,
                      d_name='', d_color=[0, 1, 0], partial_distance=None):
 
     atom_labels, structure_names, colors = get_structure_types(system, 
@@ -114,11 +114,17 @@ def show_dislocation(system, scale=0.5, diamond_structure=False, add_bonds=False
         mask = atom_labels == structure_type
         component = view.add_component(ASEStructure(system[mask]), 
                                        default_representation=False, name=str(structure_names[structure_type]))
-        if add_bonds:
-            component.add_ball_and_stick(color=colors[structure_type], radiusType='covalent', radiusScale=scale)
+        if CNA_color:
+            if add_bonds:
+                component.add_ball_and_stick(color=colors[structure_type], radiusType='covalent', radiusScale=scale)
+            else:
+                component.add_spacefill(color=colors[structure_type], radiusType='covalent', radiusScale=scale)
         else:
-            component.add_spacefill(color=colors[structure_type], radiusType='covalent', radiusScale=scale)
-        
+            if add_bonds:
+                component.add_ball_and_stick(radiusType='covalent', radiusScale=scale)
+            else:
+                component.add_spacefill(radiusType='covalent', radiusScale=scale)
+                    
     component.add_unitcell()
 
     if partial_distance is None:
