@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Sample on parameter sweep through the poisson-nernst-planck > continuous2discrete > stericify pipeline.
+# Sample on parameter sweep through the pnp > c2d > stericify pipeline.
 # see sub-directories for detailed understanding.
 
 system=cell_1d
@@ -30,3 +30,4 @@ echo "### ALL DONE ###"
 ) 2>&1 | tee pcs_pack_results.log
 
 tar -rvf ${archive} pcs_pack_results.*
+

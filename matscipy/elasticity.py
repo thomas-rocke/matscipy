@@ -32,7 +32,8 @@ import warnings
 import numpy as np
 import scipy.stats as scipy_stats
 from numpy.linalg import inv, norm
-from scipy.sparse.linalg import cg, spilu, LinearOperator
+from scipy.linalg import sqrtm
+from scipy.sparse.linalg import cg
 
 import ase.units as units
 from ase.atoms import Atoms

@@ -86,7 +86,8 @@ def debye(c, z,
     lambda_D : float
         Debye length, sqrt( epsR*eps*R*T/(2*F^2*I) ) [m]
     """
-    return np.sqrt(relative_permittivity*vacuum_permittivity*R*T/(2.0*F**2*ionic_strength(c, z)))
+    I = ionic_strength(c, z)
+    return np.sqrt(relative_permittivity*vacuum_permittivity*R*T/(2.0*F**2*I))
 
 
 def gamma(u, T=298.15):

@@ -1,4 +1,3 @@
-import os.path
 import unittest
 
 import numpy as np
@@ -24,7 +23,7 @@ class TestHessianPrecon(matscipytest.MatSciPyTestCase):
         del self.atoms[0]
         np.random.seed(0)
         self.atoms.rattle(1e-2)
-        self.eam = EAM(f'{os.path.dirname(__file__)}/Mishin-Ni-Al-2009.eam.alloy')
+        self.eam = EAM('Mishin-Ni-Al-2009.eam.alloy')
         self.tol = 1e-6
 
     def test_newton_opt(self):

@@ -5,20 +5,14 @@ import numpy as np
 import numpy.testing as nt
 
 from types import SimpleNamespace
-
 from manybody_fixtures import (
     pair_potential,
     three_body_potential,
     has_sympy,
+    analytical_pair,
+    analytical_triplet,
     FiniteDiff,
 )
-
-if has_sympy:
-    from manybody_fixtures import (
-        analytical_pair,
-        analytical_triplet,
-    )
-
 
 
 def evaluate(pot, *args):

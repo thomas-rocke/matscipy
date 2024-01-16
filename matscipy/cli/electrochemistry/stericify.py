@@ -20,7 +20,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 # ======================================================================
 """
-Applies steric correction to coordinates sample.
+Applies steric correction to coordiante sample.
 
 Copyright 2020 IMTEK Simulation
 University of Freiburg

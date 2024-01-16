@@ -41,7 +41,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ======================================================================
 
-import os.path
 import unittest
 
 import gzip
@@ -95,7 +94,7 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
                 modify sort id format float "%.14g"
         """
         format = "lammps-dump" if "lammps-dump" in io.formats.all_formats.keys() else "lammps-dump-text"
-        atoms = io.read(f"{os.path.dirname(__file__)}/CuZr_glass_460_atoms_forces.lammps.dump.gz", format=format)
+        atoms = io.read("CuZr_glass_460_atoms_forces.lammps.dump.gz", format=format)
         old_atomic_numbers = atoms.get_atomic_numbers()
         sel, = np.where(old_atomic_numbers == 1)
         new_atomic_numbers = np.zeros_like(old_atomic_numbers)
@@ -103,12 +102,12 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
         sel, = np.where(old_atomic_numbers == 2)
         new_atomic_numbers[sel] = 29 # Cu
         atoms.set_atomic_numbers(new_atomic_numbers)
-        calculator = EAM(f'{os.path.dirname(__file__)}/ZrCu.onecolumn.eam.alloy')
+        calculator = EAM('ZrCu.onecolumn.eam.alloy')
         atoms.set_calculator(calculator)
         atoms.pbc = [True, True, True]
         forces = atoms.get_forces()
         # Read tabulated forces and compare
-        with gzip.open(f"{os.path.dirname(__file__)}/CuZr_glass_460_atoms_forces.lammps.dump.gz") as file:
+        with gzip.open("CuZr_glass_460_atoms_forces.lammps.dump.gz") as file:
             for line in file:
                 if line.startswith(b"ITEM: ATOMS "): # ignore header
                     break
@@ -124,7 +123,7 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
         """
         def _test_for_size(size):
             atoms = FaceCenteredCubic('Cu', size=size)
-            calculator = EAM(f'{os.path.dirname(__file__)}/CuAg.eam.alloy')
+            calculator = EAM('CuAg.eam.alloy')
             self._test_hessian(atoms, calculator)
         _test_for_size(size=[1, 1, 1])
         _test_for_size(size=[2, 2, 2])
@@ -144,7 +143,7 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
         Hessian from ASE
         """
         atoms = FaceCenteredCubic('Cu', size=[2, 2, 2])
-        calculator = EAM(f'{os.path.dirname(__file__)}/CuAg.eam.alloy')
+        calculator = EAM('CuAg.eam.alloy')
         self._test_hessian(atoms, calculator)
 
     def test_hessian_crystalline_alloy(self):
@@ -153,7 +152,7 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
         Reference: finite difference approximation of 
         Hessian from ASE
         """
-        calculator = EAM(f'{os.path.dirname(__file__)}/ZrCu.onecolumn.eam.alloy')
+        calculator = EAM('ZrCu.onecolumn.eam.alloy')
         lattice_size = [4, 4, 4]
         # The lattice parameters are not correct, but that should be irrelevant
         # CuZr3
@@ -172,9 +171,9 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
         Reference: finite difference approximation of 
         Hessian from ASE
         """
-        atoms = io.read(f'{os.path.dirname(__file__)}/CuZr_glass_460_atoms.gz')
+        atoms = io.read('CuZr_glass_460_atoms.gz')
         atoms.pbc = [True, True, True]
-        calculator = EAM(f'{os.path.dirname(__file__)}/ZrCu.onecolumn.eam.alloy')
+        calculator = EAM('ZrCu.onecolumn.eam.alloy')
         self._test_hessian(atoms, calculator)
 
     def test_dynamical_matrix(self):
@@ -185,9 +184,9 @@ class TestEAMForcesHessian(matscipytest.MatSciPyTestCase):
         first form the complete Hessian and then divide by masses.
         The former method is implemented.
         """
-        atoms = io.read(f'{os.path.dirname(__file__)}/CuZr_glass_460_atoms.gz')
+        atoms = io.read('CuZr_glass_460_atoms.gz')
         atoms.pbc = [True, True, True]
-        calculator = EAM(f'{os.path.dirname(__file__)}/ZrCu.onecolumn.eam.alloy')
+        calculator = EAM('ZrCu.onecolumn.eam.alloy')
         dynamical_matrix = calculator.calculate_hessian_matrix(
             atoms, divide_by_masses=True
         )

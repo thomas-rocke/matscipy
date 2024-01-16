@@ -26,7 +26,8 @@ to install pre-compiled binaries, i.e. on Ubuntu 20.04
     sudo apt install --no-install-recommends software-properties-common
     sudo add-apt-repository ppa:fenics-packages/fenics
     sudo apt update
-    sudo apt install fenics=1:2019.1.0.3
+    sudo apt update
+    sudo apt install fenics
 
 If working in a virtual environment, i.e. 
 

@@ -225,6 +225,7 @@ class PoissonNernstPlanckSystem:
             self.convergenceStepRelative = []
             self.convergenceResidualAbsolute = []
 
+
             dxij = np.zeros(self.N)
 
         self.xij.append(xij)
@@ -256,7 +257,7 @@ class PoissonNernstPlanckSystem:
         """Sets up discretization scheme and initial value"""
         # indices
         self.Ni = self.N+1
-        index_i = np.arange(self.Ni)
+        I = np.arange(self.Ni)
 
         self.logger.info('{:<{lwidth}s} {:> 8.4g}'.format(
           'discretization segments N', self.N, lwidth=self.label_width))
@@ -270,7 +271,7 @@ class PoissonNernstPlanckSystem:
           'dx', self.dx, lwidth=self.label_width))
 
         # positions (scaled)
-        self.X = self.x0_scaled + index_i * self.dx
+        self.X = self.x0_scaled + I*self.dx
 
         # Boundary & initial values
 
@@ -287,6 +288,8 @@ class PoissonNernstPlanckSystem:
             self.ni0 = np.kron(self.c_scaled, np.ones((self.Ni, 1))).T
         if self.zi0 is None:
             self.zi0 = np.kron(self.z, np.ones((self.Ni, 1))).T  # does not change
+
+        # self.initial_values()
 
     def initial_values(self):
         """
@@ -375,7 +378,7 @@ class PoissonNernstPlanckSystem:
         return self.uij, self.nij, self.lamj
 
     # standard sets of boundary conditions:
-    def use_standard_interface_bc(self):
+    def useStandardInterfaceBC(self):
         """Interface at left hand side and open bulk at right hand side"""
         self.boundary_conditions = []
 
@@ -388,24 +391,24 @@ class PoissonNernstPlanckSystem:
             'Right hand side Dirichlet boundary condition:                              u1 = {:> 8.4g}'.format(self.u1))
 
         self.boundary_conditions.extend([
-            lambda x: self.left_potential_dirichlet_bc(x, self.u0),
-            lambda x: self.right_potential_dirichlet_bc(x, self.u1)])
+            lambda x: self.leftPotentialDirichletBC(x, self.u0),
+            lambda x: self.rightPotentialDirichletBC(x, self.u1)])
 
         for k in range(self.M):
             self.logger.info(
                 'Ion species {:02d} left hand side concentration Flux boundary condition:       j0 = {:> 8.4g}'.format(
-                    k, 0))
+                    k,0))
             self.logger.info(
                 'Ion species {:02d} right hand side concentration Dirichlet boundary condition: c1 = {:> 8.4g}'.format(
                     k, self.c_scaled[k]))
             self.boundary_conditions.extend([
-                lambda x, k=k: self.left_controlled_volume_scheme_flux_bc(x, k),
-                lambda x, k=k: self.right_dirichlet_bc(x, k, self.c_scaled[k])])
+                lambda x, k=k: self.leftControlledVolumeSchemeFluxBC(x, k),
+                lambda x, k=k: self.rightDirichletBC(x, k, self.c_scaled[k])])
         # counter-intuitive behavior of lambda in loop:
         # https://stackoverflow.com/questions/2295290/what-do-lambda-function-closures-capture
         # workaround: default parameter k=k
 
-    def use_standard_cell_bc(self):
+    def useStandardCellBC(self):
         """Interfaces at left hand side and right hand side"""
         self.boundary_conditions = []
 
@@ -417,8 +420,8 @@ class PoissonNernstPlanckSystem:
         self.logger.info('{:>{lwidth}s} u1 = {:< 8.4g}'.format(
           'Right hand side Dirichlet boundary condition', self.u1, lwidth=self.label_width))
         self.boundary_conditions.extend([
-            lambda x: self.left_potential_dirichlet_bc(x, self.u0),
-            lambda x: self.right_potential_dirichlet_bc(x, self.u1)])
+            lambda x: self.leftPotentialDirichletBC(x, self.u0),
+            lambda x: self.rightPotentialDirichletBC(x, self.u1)])
 
         N0 = self.L_scaled*self.c_scaled  # total amount of species in cell
         for k in range(self.M):
@@ -430,10 +433,10 @@ class PoissonNernstPlanckSystem:
                 N0[k], lwidth=self.label_width))
 
             self.boundary_conditions.extend([
-                lambda x, k=k: self.left_controlled_volume_scheme_flux_bc(x, k),
-                lambda x, k=k, N0=N0[k]: self.number_conservation_constraint(x, k, N0)])
+                lambda x, k=k: self.leftControlledVolumeSchemeFluxBC(x, k),
+                lambda x, k=k, N0=N0[k]: self.numberConservationConstraint(x, k, N0)])
 
-    def use_stern_layer_cell_bc(self, implicit=False):
+    def useSternLayerCellBC(self, implicit=False):
         """Interfaces at left hand side and right hand side,
         Stern layer either by prescribing linear potential regime between cell
         boundary and outer Helmholtz plane (OHP), or by applying Robin BC;
@@ -462,8 +465,8 @@ class PoissonNernstPlanckSystem:
             self.logger.info('{:>{lwidth}s} u1 + lambda_S*dudx = {:< 8.4g}'.format(
                 'Right hand side Robin boundary condition', self.u1, lwidth=self.label_width))
             self.boundary_conditions.extend([
-                lambda x: self.left_potential_robin_bc(x, self.lambda_S_scaled, self.u0),
-                lambda x: self.right_potential_robin_bc(x, self.lambda_S_scaled, self.u1)])
+                lambda x: self.leftPotentialRobinBC(x, self.lambda_S_scaled, self.u0),
+                lambda x: self.rightPotentialRobinBC(x, self.lambda_S_scaled, self.u1)])
 
         else:  # explicitly treat Stern layer via linear regime
             self.logger.info('Explicitly treating Stern layer as uniformly charged regions')
@@ -477,8 +480,9 @@ class PoissonNernstPlanckSystem:
             self.logger.info('{:>{lwidth}s} u1 = {:< 8.4g}'.format(
                 'Right hand side Dirichlet boundary condition', self.u1, lwidth=self.label_width))
             self.boundary_conditions.extend([
-                lambda x: self.left_potential_dirichlet_bc(x, self.u0),
-                lambda x: self.right_potential_dirichlet_bc(x, self.u1)])
+                lambda x: self.leftPotentialDirichletBC(x, self.u0),
+                lambda x: self.rightPotentialDirichletBC(x, self.u1)])
+
 
         N0 = self.L_scaled*self.c_scaled  # total amount of species in cell
         for k in range(self.M):
@@ -490,11 +494,11 @@ class PoissonNernstPlanckSystem:
                 N0[k], lwidth=self.label_width))
 
             self.boundary_conditions.extend([
-                lambda x, k=k: self.left_controlled_volume_scheme_flux_bc(x, k),
-                lambda x, k=k, N0=N0[k]: self.number_conservation_constraint(x, k, N0)])
+                lambda x, k=k: self.leftControlledVolumeSchemeFluxBC(x, k),
+                lambda x, k=k, N0=N0[k]: self.numberConservationConstraint(x, k, N0)])
 
     # TODO: meaningful test for Dirichlet BC
-    def use_standard_dirichlet_bc(self):
+    def useStandardDirichletBC(self):
         """Dirichlet BC for all variables at all boundaries"""
         self.boundary_conditions = []
 
@@ -508,22 +512,22 @@ class PoissonNernstPlanckSystem:
 
         # set up boundary conditions
         self.boundary_conditions.extend([
-          lambda x: self.left_potential_dirichlet_bc(x, self.u0),
-          lambda x: self.right_potential_dirichlet_bc(x, self.u1)])
+          lambda x: self.leftPotentialDirichletBC(x, self.u0),
+          lambda x: self.rightPotentialDirichletBC(x, self.u1)])
 
         for k in range(self.M):
-            self.logger.info(
-                'Ion species {:02d} left hand side concentration Dirichlet boundary condition:  c0 = {:> 8.4g}'.format(
-                    k, self.c_scaled[k]))
-            self.logger.info(
-                'Ion species {:02d} right hand side concentration Dirichlet boundary condition: c1 = {:> 8.4g}'.format(
-                    k, self.c_scaled[k]))
-            self.boundary_conditions.extend([
-                lambda x, k=k: self.left_dirichlet_bc(x, k, self.c_scaled[k]),
-                lambda x, k=k: self.right_dirichlet_bc(x, k, self.c_scaled[k])])
+          self.logger.info(
+              'Ion species {:02d} left hand side concentration Dirichlet boundary condition:  c0 = {:> 8.4g}'.format(
+                  k, self.c_scaled[k]))
+          self.logger.info(
+              'Ion species {:02d} right hand side concentration Dirichlet boundary condition: c1 = {:> 8.4g}'.format(
+                  k, self.c_scaled[k]))
+          self.boundary_conditions.extend([
+              lambda x, k=k: self.leftDirichletBC(x, k, self.c_scaled[k]),
+              lambda x, k=k: self.rightDirichletBC(x, k, self.c_scaled[k])])
 
     # boundary conditions and constraints building blocks:
-    def left_finite_difference_scheme_flux_bc(self, x, k, j0=0):
+    def leftFiniteDifferenceSchemeFluxBC(self, x, k, j0=0):
         """
         Parameters
         ----------
@@ -554,9 +558,9 @@ class PoissonNernstPlanckSystem:
                 dndx, self.zi0[k, 0], nijk[0], dudx, self.dx, j0))
         return bcval
 
-    def right_finite_difference_scheme_flux_bc(self, x, k, j0=0):
+    def rightFiniteDifferenceSchemeFluxBC(self, x, k, j0=0):
         """
-        See ```left_finite_difference_scheme_flux_bc```
+        See ```leftFiniteDifferenceSchemeFluxBC```
         """
         uij = x[:self.Ni]
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
@@ -574,7 +578,7 @@ class PoissonNernstPlanckSystem:
                 dndx, self.zi0[k, -1], nijk[-1], dudx, self.dx, j0))
         return bcval
 
-    def left_controlled_volume_scheme_flux_bc(self, x, k, j0=0):
+    def leftControlledVolumeSchemeFluxBC(self, x, k, j0=0):
         """
         Compute left hand side flux boundary condition residual in accord with
         controlled volume scheme.
@@ -604,10 +608,10 @@ class PoissonNernstPlanckSystem:
             'CV flux BC F[0]  = n1*B(z(u0-u1)) - n0*B(z(u1-u0)) - j0*dx = {:> 8.4g}'.format(bcval))
         return bcval
 
-    def right_controlled_volume_scheme_flux_bc(self, x, k, j0=0):
+    def rightControlledVolumeSchemeFluxBC(self, x, k, j0=0):
         """
         Compute right hand side flux boundary condition residual in accord with
-        controlled volume scheme. See ``left_controlled_volume_scheme_flux_bc``
+        controlled volume scheme. See ``leftControlledVolumeSchemeFluxBC``
         """
         uij = x[:self.Ni]
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
@@ -621,25 +625,25 @@ class PoissonNernstPlanckSystem:
             'CV flux BC F[-1]  = n[-1]*B(z(u[-2]-u[-1])) - n[-2]*B(z(u[-1]-u[-2])) - j0*dx = {:> 8.4g}'.format(bcval))
         return bcval
 
-    def left_potential_dirichlet_bc(self, x, u0=0):
-        return self.left_dirichlet_bc(x, -1, u0)
+    def leftPotentialDirichletBC(self, x, u0=0):
+        return self.leftDirichletBC(x, -1, u0)
 
-    def left_dirichlet_bc(self, x, k, x0=0):
+    def leftDirichletBC(self, x, k, x0=0):
         """Construct Dirichlet BC at left boundary"""
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
         return nijk[0] - x0
 
-    def right_potential_dirichlet_bc(self, x, x0=0):
-        return self.right_dirichlet_bc(x, -1, x0)
+    def rightPotentialDirichletBC(self, x, x0=0):
+        return self.rightDirichletBC(x, -1, x0)
 
-    def right_dirichlet_bc(self, x, k, x0=0):
+    def rightDirichletBC(self, x, k, x0=0):
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
         return nijk[-1] - x0
 
-    def left_potential_robin_bc(self, x, lam, u0=0):
-        return self.left_robin_bc(x, -1, lam, u0)
+    def leftPotentialRobinBC(self, x, lam, u0=0):
+        return self.leftRobinBC(x, -1, lam, u0)
 
-    def left_robin_bc(self, x, k, lam, x0=0):
+    def leftRobinBC(self, x, k, lam, x0=0):
         """
         Compute left hand side Robin (u + lam*dudx = u0 ) BC at in accord with
         2nd order finite difference scheme.
@@ -666,20 +670,20 @@ class PoissonNernstPlanckSystem:
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
         return nijk[0] + lam/(2*self.dx) * (3.0*nijk[0] - 4.0*nijk[1] + nijk[2]) - x0
 
-    def right_potential_robin_bc(self, x, lam, u0=0):
-        return self.right_robin_bc(x, -1, lam, u0)
+    def rightPotentialRobinBC(self, x, lam, u0=0):
+        return self.rightRobinBC(x, -1, lam, u0)
 
-    def right_robin_bc(self, x, k, lam, x0=0):
+    def rightRobinBC(self, x, k, lam, x0=0):
         """Construct Robin (u + lam*dudx = u0 ) BC at right boundary."""
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
         return nijk[-1] + lam/(2*self.dx) * (3.0*nijk[-1] - 4.0*nijk[-2] + nijk[-3]) - x0
 
-    def number_conservation_constraint(self, x, k, N0):
+    def numberConservationConstraint(self, x, k, N0):
         """N0: total amount of species, k: ion species"""
         nijk = x[(k+1)*self.Ni:(k+2)*self.Ni]
 
-        # TODO: this integration scheme assumes constant concentrations within
-        # an interval. Adapt to controlled volume scheme!
+        ## TODO: this integration scheme assumes constant concentrations within
+        ## an interval. Adapt to controlled volume scheme!
 
         # rescale to fit interval
         N = np.sum(nijk*self.dx) * self.N / self.Ni
@@ -691,7 +695,7 @@ class PoissonNernstPlanckSystem:
         return constraint_val
 
     # TODO: remove or standardize
-    # def left_neumann_bc(self,x,j0):
+    # def leftNeumannBC(self,x,j0):
     #   """Construct finite difference Neumann BC (flux BC) at left boundary"""
     #   # right hand side first derivative of second order error
     #   # df0dx = 1 / (2*dx) * (-3 f0 + 4 f1 - f2 ) + O(dx^2) = j0
@@ -700,7 +704,7 @@ class PoissonNernstPlanckSystem:
     #     'Neumann BC F[0]  = -3*x[0]  + 4*x[1]  - x[2]  = {:> 8.4g}'.format(bcval))
     #   return bcval
     #
-    # def right_neumann_bc(self,x,j0):
+    # def rightNeumannBC(self,x,j0):
     #   """Construct finite difference Neumann BC (flux BC) at right boundary"""
     #   # left hand side first derivative of second order error
     #   # dfndx = 1 / (2*dx) * (+3 fn - 4 fn-1 + fn-2 ) + O(dx^2) = 0
@@ -793,7 +797,7 @@ class PoissonNernstPlanckSystem:
         for k in range(self.M):
             self.logger.debug(
                 'ion species {:02d} concentration range [c_min, c_max] = [ {:>.4g}, {:>.4g} ]'.format(
-                    k, np.min(nijk1[k, :]), np.max(nijk1[k, :])))
+                k, np.min(nijk1[k, :]), np.max(nijk1[k, :])))
 
         Fn = np.zeros([self.M, self.Ni])
         # loop over k = 1..M reduced Nernst-Planck equations:
@@ -853,12 +857,12 @@ class PoissonNernstPlanckSystem:
         return F
 
     @property
-    def ionic_strength(self):  # ionic strength
+    def I(self):  # ionic strength
         """Compute the system's ionic strength from charges and concentrations.
 
         Returns
         -------
-        ionic_strength : float
+        I : float
             ionic strength ( 1/2 * sum(z_i^2*c_i) )
             [concentration unit, i.e. mol m^-3]
         """
@@ -875,7 +879,7 @@ class PoissonNernstPlanckSystem:
         """
         return np.sqrt(
             self.relative_permittivity*self.vacuum_permittivity*self.R*self.T/(
-                2.0*self.F**2*self.ionic_strength))
+                2.0*self.F**2*self.I))
 
     # default 0.1 mM (i.e. mol/m^3) NaCl aqueous solution
     def init(self,
@@ -896,8 +900,7 @@ class PoissonNernstPlanckSystem:
              solver=None,
              options=None,
              potential0=None,
-             concentration0=None,
-             **kwarsg):
+             concentration0=None):
         """Initializes a 1D Poisson-Nernst-Planck system description.
 
         Expects quantities in SI units per default.
@@ -933,7 +936,7 @@ class PoissonNernstPlanckSystem:
             absolute tolerance for Newton solver convergence (default: 1e-10)
         maxit : int, optional
             maximum number of Newton iterations (default: 20)
-        solver: func( func(x), x0), optional
+        solver: func( funx(x), x0), optional
             solver to use (default: None, will use own simple Newton solver)
         potential0: (N+1,) ndarray, optional (default: None)
             potential initial values
@@ -975,6 +978,7 @@ class PoissonNernstPlanckSystem:
         self.lambda_S = lambda_S  # Stern layer thickness
         self.x0 = x0  # reference position
         self.delta_u = delta_u  # potential difference
+
 
         self.relative_permittivity = relative_permittivity
         self.vacuum_permittivity = vacuum_permittivity
@@ -1019,7 +1023,7 @@ class PoissonNernstPlanckSystem:
         self.l_unit = self.lambda_D
 
         # concentration unit is ionic strength
-        self.c_unit = self.ionic_strength
+        self.c_unit = self.I
 
         # no time unit for now, only steady state
         # self.t_unit = self.l_unit**2 / self.Dn # fixes Dn_scaled = 1
