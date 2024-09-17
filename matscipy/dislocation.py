@@ -2807,9 +2807,9 @@ class CubicCrystalDislocation(metaclass=ABCMeta):
             (N, 3) array of positions of atoms in the bulk configuration
         core_positions: np.array
             Positions of each dislocation core (shape = (ncores, 3))
-        use_atomman: bool
-            Use the Stroh solver included in atomman (requires atomman package) to
-            solve for displacements, or use the AnisotropicDislocation class
+        method: str
+            Method to use when calculating the Continuum Linear Elastic (CLE) dislocation displacements.
+            See self.avail_methods for a list of accepted methods
         self_consistent: bool
             Whether to detemine the dislocation displacements in a self-consistent manner
             (self_consistent=False is equivalent to max_iter=0)
@@ -2889,9 +2889,9 @@ class CubicCrystalDislocation(metaclass=ABCMeta):
         self_consistent: bool
             Controls whether the displacement field used to construct the dislocation is converged 
             self-consistently. If None (default), the value of self.self_consistent is used
-        use_atomman: bool
-            Use the Stroh solver included in atomman (requires atomman package) to
-            solve for displacements, or use the AnisotropicDislocation class
+        method: str
+            Method to use when calculating the Continuum Linear Elastic (CLE) dislocation displacements.
+            See self.avail_methods for a list of accepted methods
         '''
 
         core_positions = np.array([
@@ -3370,9 +3370,9 @@ class CubicCrystalDissociatedDislocation(CubicCrystalDislocation, metaclass=ABCM
 
         Parameters
         ----------
-        use_atomman: bool
-            Use the Stroh solver included in atomman (requires atomman package) to
-            solve for displacements, or use the AnisotropicDislocation class
+        method: str
+            Method to use when calculating the Continuum Linear Elastic (CLE) dislocation displacements.
+            See self.avail_methods for a list of accepted methods
 
         Returns
         -------
@@ -3407,9 +3407,9 @@ class CubicCrystalDissociatedDislocation(CubicCrystalDislocation, metaclass=ABCM
             distance between partials (SF length) in number of glide distances.
             Default is 0 -> non dissociated dislocation
             with b = b_left + b_right is produced
-        use_atomman: bool
-            Use the Stroh solver included in atomman (requires atomman package) to
-            solve for displacements, or use the AnisotropicDislocation class
+        method: str
+            Method to use when calculating the Continuum Linear Elastic (CLE) dislocation displacements.
+            See self.avail_methods for a list of accepted methods
         extension: np.array
             Shape (2, 3) array giving additional extension vectors from each dislocation core.
             Used to add extra bulk, e.g. to set up glide configurations.
