@@ -36,6 +36,7 @@ jobs:
 
       - name: build_c
         run: |
+          pip install urllib3 --ignore-installed
           sudo pip install .[test]
 
       - name: pytest
